@@ -1,0 +1,33 @@
+/* Shared site styles */
+:root{
+  --accent:#0066cc;
+  --muted:#666;
+  --bg:#fff;
+}
+body{font-family:Helvetica,Arial,sans-serif;background:var(--bg);color:#111;margin:0;padding:1rem}
+header.site-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0;border-bottom:1px solid #eee}
+header.site-header .brand{font-weight:700;color:var(--accent)}
+nav.site-nav a{color:var(--accent);text-decoration:none;margin-left:0.75rem}
+main{max-width:900px;margin:1rem auto;padding:0 1rem}
+footer.site-footer{border-top:1px solid #eee;padding:1rem;margin-top:2rem;color:var(--muted);font-size:0.9rem;text-align:center}
+.artwork{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
+.artwork img{max-width:300px;height:auto;border:1px solid #ddd}
+form input[type=text],form input[type=email]{width:100%;padding:.5rem;border:1px solid #ccc;border-radius:4px}
+fieldset{border:1px solid #ddd;padding:.5rem;border-radius:4px}
+button.btn{background:var(--accent);color:white;border:none;padding:.5rem 1rem;border-radius:4px;cursor:pointer}
+.notice{padding:.75rem;border-radius:4px;margin-top:.5rem}
+.notice.success{background:#e6ffef;border:1px solid #b5f0c7;color:#086a2b}
+.notice.error{background:#ffecec;border:1px solid #f5b7b7;color:#7a1c1c}
+main{max-width:900px;margin:1rem auto;padding:0 1rem}
+form{max-width:420px}
+label{display:block;margin-top:.5rem}
+.spaced{margin-top:.5rem}
+
+/* Class selector used on multiple tags in the pages */
+.callout{background:#f9f9f9;padding:.5rem;border-left:4px solid var(--accent);border-radius:4px}
+.accent{color:var(--accent);font-weight:600}
+
+/* ID selectors that affect multiple tags inside an element with that ID */
+#hero h1{color:#042b3a;margin:0 0 .25rem}
+#hero p{color:#333;margin:0 0 1rem}
+
