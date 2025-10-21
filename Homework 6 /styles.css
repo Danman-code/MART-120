@@ -31,3 +31,8 @@ label{display:block;margin-top:.5rem}
 #hero h1{color:#042b3a;margin:0 0 .25rem}
 #hero p{color:#333;margin:0 0 1rem}
 
+/* Error styling applied by JS */
+.input-error{outline:2px solid #d9534f !important; background:#fff6f6}
+fieldset.input-error{outline:2px solid #d9534f; background:#fff6f6}
+input.input-error{border-color:#d9534f}
+

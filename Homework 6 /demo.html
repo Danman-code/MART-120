@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contact Form Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      .demo-stage{max-width:600px;margin:2rem auto;padding:1rem;border:1px solid #eee;border-radius:6px}
+      .step-label{font-weight:600;margin:0 0 .5rem}
+      .controls{display:flex;gap:.5rem;margin-top:.75rem}
+      .log{font-family:monospace;background:#fafafa;border:1px solid #eee;padding:.5rem;height:6rem;overflow:auto}
+    </style>
+  </head>
+  <body>
+    <main class="demo-stage">
+      <h2>Contact Form Validation Demo</h2>
+      <p class="callout">This demo simulates the validation flow used on the Contact page. Click "Run Demo" to watch the steps.</p>
+
+      <form id="demoForm">
+        <label>Name
+          <input id="demoName" type="text" name="name" placeholder="Your name">
+        </label>
+        <label>Email
+          <input id="demoEmail" type="email" name="email" placeholder="you@example.com">
+        </label>
+
+        <fieldset id="demoFS">
+          <legend>Do you accept the terms?</legend>
+          <label><input id="demoAccept" type="checkbox" name="accept"> Yes</label>
+        </fieldset>
+
+        <p class="controls">
+          <button id="runBtn" type="button" class="btn">Run Demo</button>
+          <button id="resetBtn" type="button">Reset</button>
+        </p>
+      </form>
+
+      <div class="step-label">Log</div>
+      <div id="demoLog" class="log"></div>
+    </main>
+
+    <script>
+      // Demo script: steps through validation scenarios
+      const runBtn = document.getElementById('runBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const name = document.getElementById('demoName');
+      const email = document.getElementById('demoEmail');
+      const accept = document.getElementById('demoAccept');
+      const fs = document.getElementById('demoFS');
+      const log = document.getElementById('demoLog');
+
+      function logMsg(msg){
+        log.textContent += msg + "\n";
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function clearVisuals(){
+        [name,email,accept,fs].forEach(el => el.classList && el.classList.remove('input-error'));
+        [name,email].forEach(i => i.removeAttribute('aria-invalid'));
+      }
+
+      function stepMissingName(){
+        clearVisuals();
+        logMsg('Step: Missing name — focusing and marking name');
+        name.classList.add('input-error');
+        name.setAttribute('aria-invalid','true');
+        name.focus();
+      }
+
+      function stepMissingEmail(){
+        clearVisuals();
+        logMsg('Step: Name present, Email missing — focusing and marking email');
+        name.value = 'Demo User';
+        email.classList.add('input-error');
+        email.setAttribute('aria-invalid','true');
+        email.focus();
+      }
+
+      function stepMissingTerms(){
+        clearVisuals();
+        logMsg('Step: Name & Email present, Terms missing — marking fieldset and checkbox');
+        name.value = 'Demo User';
+        email.value = 'demo@example.com';
+        fs.classList.add('input-error');
+        accept.classList.add('input-error');
+        accept.focus();
+      }
+
+      function stepSuccess(){
+        clearVisuals();
+        logMsg('Step: All fields provided — success');
+        name.value = 'Demo User';
+        email.value = 'demo@example.com';
+        accept.checked = true;
+        // flash success
+        const note = document.createElement('div');
+        note.className = 'notice success';
+        note.textContent = 'Thanks, Demo User! (simulated)';
+        document.querySelector('main').appendChild(note);
+        setTimeout(()=> note.remove(),1500);
+      }
+
+      runBtn.addEventListener('click', function(){
+        log.textContent = '';
+        name.value = '';
+        email.value = '';
+        accept.checked = false;
+        const steps = [stepMissingName, stepMissingEmail, stepMissingTerms, stepSuccess];
+        let i = 0;
+        const t = setInterval(()=>{
+          steps[i]();
+          i++;
+          if(i>=steps.length){ clearInterval(t); logMsg('Demo finished'); }
+        }, 1600);
+      });
+
+      resetBtn.addEventListener('click', function(){
+        clearVisuals(); name.value=''; email.value=''; accept.checked=false; log.textContent='';
+      });
+    </script>
+  </body>
+</html>
