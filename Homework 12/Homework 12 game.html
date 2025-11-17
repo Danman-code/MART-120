@@ -36,16 +36,16 @@
         const keys = {};
         let won = false;
 
-        /* Utilities */
+      
         function rand(min,max){ return Math.random()*(max-min)+min }
         function randColor(){ const h = Math.floor(rand(0,360)); return `hsl(${h} 70% 50%)` }
 
-        /* Create player */
+        //Create player 
         function createPlayer(){
           player = { x:50, y:50, r:14, speed:3.2, color:'#2b6cb0' };
         }
 
-        /* Move player using keyboard (if/else if used as requested) */
+        //Move player using keyboard 
         function movePlayer(){
           if(!player || won) return;
           if(keys['ArrowUp'] || keys['w'] || keys['W']){
@@ -60,21 +60,21 @@
             player.x += player.speed;
           }
 
-          // clamp
+       
           if(player.x < player.r) player.x = player.r;
           if(player.x > W - player.r) player.x = W - player.r;
           if(player.y < player.r) player.y = player.r;
           if(player.y > H - player.r) player.y = H - player.r;
         }
 
-        /* Create a static obstacle at coordinates (drawObjectOnClick will call this) */
+        //Create a static obstacle at coordinates 
         function createStaticObstacle(x,y){
           const w = Math.floor(rand(20,60));
           const h = Math.floor(rand(20,80));
           obstacles.push({ x: x - w/2, y: y - h/2, w, h, vx:0, vy:0, color:randColor(), moving:false });
         }
 
-        /* Click handler that draws an object (actually creates it into state) */
+        //Click handler that draws an object
         function drawObjectOnClick(e){
           const rect = canvas.getBoundingClientRect();
           const mx = e.clientX - rect.left;
@@ -82,7 +82,7 @@
           createStaticObstacle(mx, my);
         }
 
-        /* Create multiple obstacles (different sizes/colors). It's OK to make only 2 moving ones. */
+        //Create multiple obstacles
         function createObstacles(){
           obstacles.length = 0; // clear
           obstacles.push({ x:200, y:120, w:60, h:40, vx:1.2, vy:0.6, color:randColor(), moving:true });
@@ -91,7 +91,7 @@
           obstacles.push({ x:100, y:420, w:30, h:30, vx:1.6, vy:-1.0, color:randColor(), moving:true });
         }
 
-        /* Different functions to move each obstacle around (wrap if exit) */
+       //Different functions to move each obstacle around
         function moveObstacle1(o){
           o.x += o.vx; o.y += o.vy;
           if(o.x > W) o.x = -o.w; else if(o.x + o.w < 0) o.x = W;
@@ -113,7 +113,7 @@
           if(o.y > H) o.y = -o.h; else if(o.y + o.h < 0) o.y = H;
         }
 
-        /* Border generator - draws a border around the screen */
+        //draws a border around the screen
         function generateBorders(){
           ctx.save();
           ctx.strokeStyle = '#999';
@@ -122,7 +122,7 @@
           ctx.restore();
         }
 
-        /* Create & draw exit area */
+        //Create & draw exit area
         function generateExit(){
           if(!exit) exit = { x: W-100, y: H-80, w:80, h:60, color:'rgba(40,167,69,0.25)', stroke:'#28a745' };
           ctx.fillStyle = exit.color;
@@ -135,17 +135,17 @@
           ctx.fillText('EXIT', exit.x + 8, exit.y + 20);
         }
 
-        /* Display the You win message */
+        //Display the You win message
         function displayWinMessage(){
           overlay.style.display = 'flex';
         }
 
-        /* Draw background */
+        //Draw background
         function drawBackground(){
           ctx.clearRect(0,0,W,H);
         }
 
-        /* Draw all obstacles */
+        //Draw all obstacles
         function drawObstacles(){
           for(const o of obstacles){
             ctx.fillStyle = o.color;
@@ -155,7 +155,7 @@
           }
         }
 
-        /* Draw the player */
+        //Draw the player
         function drawPlayer(){
           if(!player) return;
           ctx.beginPath();
@@ -165,12 +165,12 @@
           ctx.closePath();
         }
 
-        /* Update — calls the movement functions */
+        //Update — calls the movement functions 
         function update(){
           if(won) return;
           movePlayer();
 
-          // move moving obstacles using distinct functions for the first three
+        //move moving obstacles using distinct functions for the first three
           if(obstacles[0] && obstacles[0].moving) moveObstacle1(obstacles[0]);
           if(obstacles[1] && obstacles[1].moving) moveObstacle2(obstacles[1]);
           if(obstacles[2] && obstacles[2].moving) moveObstacle3(obstacles[2]);
@@ -187,7 +187,7 @@
           }
         }
 
-        /* draw should only call functions created earlier plus background */
+        
         function draw(){
           drawBackground();
           generateExit();
