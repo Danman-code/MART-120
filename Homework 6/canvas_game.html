@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Canvas Game — Player & Obstacles</title>
+    <style>
+      body{font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f3f4f6}
+      .wrap{width:860px}
+      canvas{background:#fff;display:block;border:1px solid #ccc}
+      .hint{font-size:14px;color:#333;margin-top:8px}
+      .overlay{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+      .winbox{background:rgba(0,0,0,0.75);color:#fff;padding:20px 30px;border-radius:8px;font-size:24px}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div style="position:relative">
+        <canvas id="game" width="800" height="600"></canvas>
+        <div id="overlay" class="overlay" style="display:none"><div class="winbox">You won! 🎉</div></div>
+      </div>
+      <div class="hint">Use arrow keys or WASD to move the blue player. Click to drop a static obstacle. Reach the green Exit to win.</div>
+    </div>
+
+    <script>
+      (function(){
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const W = canvas.width, H = canvas.height;
+
+        // State
+        let player = null;
+        let exit = null;
+        const obstacles = [];
+        const keys = {};
+        let won = false;
+
+        /* Utilities */
+        function rand(min,max){ return Math.random()*(max-min)+min }
+        function randColor(){ const h = Math.floor(rand(0,360)); return `hsl(${h} 70% 50%)` }
+
+        /* Create player */
+        function createPlayer(){
+          player = { x:50, y:50, r:14, speed:3.2, color:'#2b6cb0' };
+        }
+
+        /* Move player using keyboard (if/else if used as requested) */
+        function movePlayer(){
+          if(!player || won) return;
+          if(keys['ArrowUp'] || keys['w'] || keys['W']){
+            player.y -= player.speed;
+          } else if(keys['ArrowDown'] || keys['s'] || keys['S']){
+            player.y += player.speed;
+          }
+
+          if(keys['ArrowLeft'] || keys['a'] || keys['A']){
+            player.x -= player.speed;
+          } else if(keys['ArrowRight'] || keys['d'] || keys['D']){
+            player.x += player.speed;
+          }
+
+          // clamp
+          if(player.x < player.r) player.x = player.r;
+          if(player.x > W - player.r) player.x = W - player.r;
+          if(player.y < player.r) player.y = player.r;
+          if(player.y > H - player.r) player.y = H - player.r;
+        }
+
+        /* Create a static obstacle at coordinates (drawObjectOnClick will call this) */
+        function createStaticObstacle(x,y){
+          const w = Math.floor(rand(20,60));
+          const h = Math.floor(rand(20,80));
+          obstacles.push({ x: x - w/2, y: y - h/2, w, h, vx:0, vy:0, color:randColor(), moving:false });
+        }
+
+        /* Click handler that draws an object (actually creates it into state) */
+        function drawObjectOnClick(e){
+          const rect = canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+          createStaticObstacle(mx, my);
+        }
+
+        /* Create multiple obstacles (different sizes/colors). It's OK to make only 2 moving ones. */
+        function createObstacles(){
+          obstacles.length = 0; // clear
+          obstacles.push({ x:200, y:120, w:60, h:40, vx:1.2, vy:0.6, color:randColor(), moving:true });
+          obstacles.push({ x:420, y:320, w:40, h:70, vx:-0.9, vy:1.1, color:randColor(), moving:true });
+          // optional third moving obstacle
+          obstacles.push({ x:100, y:420, w:30, h:30, vx:1.6, vy:-1.0, color:randColor(), moving:true });
+        }
+
+        /* Different functions to move each obstacle around (wrap if exit) */
+        function moveObstacle1(o){
+          o.x += o.vx; o.y += o.vy;
+          if(o.x > W) o.x = -o.w; else if(o.x + o.w < 0) o.x = W;
+          if(o.y > H) o.y = -o.h; else if(o.y + o.h < 0) o.y = H;
+        }
+
+        function moveObstacle2(o){
+          // slightly different behavior (uses small random jitter)
+          o.x += o.vx + Math.sin(Date.now()/1000 + o.x)*0.01;
+          o.y += o.vy + Math.cos(Date.now()/1000 + o.y)*0.01;
+          if(o.x > W) o.x = -o.w; else if(o.x + o.w < 0) o.x = W;
+          if(o.y > H) o.y = -o.h; else if(o.y + o.h < 0) o.y = H;
+        }
+
+        function moveObstacle3(o){
+          // faster small obstacle
+          o.x += o.vx * 1.15; o.y += o.vy * 1.15;
+          if(o.x > W) o.x = -o.w; else if(o.x + o.w < 0) o.x = W;
+          if(o.y > H) o.y = -o.h; else if(o.y + o.h < 0) o.y = H;
+        }
+
+        /* Border generator - draws a border around the screen */
+        function generateBorders(){
+          ctx.save();
+          ctx.strokeStyle = '#999';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(0.5, 0.5, W-1, H-1);
+          ctx.restore();
+        }
+
+        /* Create & draw exit area */
+        function generateExit(){
+          if(!exit) exit = { x: W-100, y: H-80, w:80, h:60, color:'rgba(40,167,69,0.25)', stroke:'#28a745' };
+          ctx.fillStyle = exit.color;
+          ctx.fillRect(exit.x, exit.y, exit.w, exit.h);
+          ctx.strokeStyle = exit.stroke;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(exit.x, exit.y, exit.w, exit.h);
+          ctx.fillStyle = exit.stroke;
+          ctx.font = '14px sans-serif';
+          ctx.fillText('EXIT', exit.x + 8, exit.y + 20);
+        }
+
+        /* Display the You win message */
+        function displayWinMessage(){
+          overlay.style.display = 'flex';
+        }
+
+        /* Draw background */
+        function drawBackground(){
+          ctx.clearRect(0,0,W,H);
+        }
+
+        /* Draw all obstacles */
+        function drawObstacles(){
+          for(const o of obstacles){
+            ctx.fillStyle = o.color;
+            ctx.fillRect(o.x, o.y, o.w, o.h);
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.strokeRect(o.x, o.y, o.w, o.h);
+          }
+        }
+
+        /* Draw the player */
+        function drawPlayer(){
+          if(!player) return;
+          ctx.beginPath();
+          ctx.fillStyle = player.color;
+          ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
+          ctx.fill();
+          ctx.closePath();
+        }
+
+        /* Update — calls the movement functions */
+        function update(){
+          if(won) return;
+          movePlayer();
+
+          // move moving obstacles using distinct functions for the first three
+          if(obstacles[0] && obstacles[0].moving) moveObstacle1(obstacles[0]);
+          if(obstacles[1] && obstacles[1].moving) moveObstacle2(obstacles[1]);
+          if(obstacles[2] && obstacles[2].moving) moveObstacle3(obstacles[2]);
+          // any additional obstacles that are moving use generic movement
+          for(let i=3;i<obstacles.length;i++){
+            const o = obstacles[i];
+            if(o.moving){ o.x += (o.vx||0); o.y += (o.vy||0); if(o.x>W) o.x=-o.w; if(o.x+o.w<0)o.x=W; if(o.y>H)o.y=-o.h; if(o.y+o.h<0)o.y=H; }
+          }
+
+          // Check exit condition
+          if(player.x > exit.x && player.y > exit.y && player.x < exit.x + exit.w && player.y < exit.y + exit.h){
+            won = true;
+            displayWinMessage();
+          }
+        }
+
+        /* draw should only call functions created earlier plus background */
+        function draw(){
+          drawBackground();
+          generateExit();
+          drawObstacles();
+          drawPlayer();
+          generateBorders();
+          if(won) displayWinMessage();
+        }
+
+        /* Setup */
+        window.addEventListener('keydown', e => { keys[e.key] = true });
+        window.addEventListener('keyup', e => { keys[e.key] = false });
+        canvas.addEventListener('click', drawObjectOnClick);
+
+        function loop(){ update(); draw(); if(!won) requestAnimationFrame(loop); }
+
+        // initialize
+        createPlayer();
+        createObstacles();
+        generateExit();
+        loop();
+      })();
+    </script>
+  </body>
+</html>
